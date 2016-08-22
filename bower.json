@@ -1,0 +1,31 @@
+{
+  "name": "url-composer",
+  "version": "1.0.0",
+  "authors": [
+    "Carl OGREN <rascarlito@gmail.com>"
+  ],
+  "description": "Building dynamic URLs",
+  "main": "dist/url-composer.js",
+  "moduleType": [
+    "amd",
+    "global",
+    "es6"
+  ],
+  "keywords": [
+    "url",
+    "path",
+    "query",
+    "composer",
+    "builder"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/RasCarlito/url-composer.git"
+  },
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules"
+  ],
+  "dependencies": {}
+}
