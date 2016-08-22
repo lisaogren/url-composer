@@ -12,19 +12,79 @@ const regex = {
   namedParams: /(\(\?)?:\w+/g
 }
 
-const url = {
+const pathComposer = {
+  parse (path, args) {
+    path = path || ''
+    args = args || []
+
+    if (!args.length) {
+      return pathComposer.removeOptionalParams(path)
+    }
+
+    path = pathComposer.replaceArgs(path, args)
+
+    path = pathComposer.removeTrailingSlash(
+      pathComposer.removeParentheses(path)
+    )
+
+    return path
+  },
+
+  replaceArgs (path, args) {
+    args = args || []
+
+    args.forEach(arg => {
+      path = pathComposer.replaceArg(path, arg)
+    })
+
+    const matches = path.match(regex.optionalParams)
+
+    if (matches) {
+      matches.forEach(part => {
+        if (pathComposer.isNamedOrSplatParam(part)) {
+          path = path.replace(part, '')
+        }
+      })
+    }
+
+    return path
+  },
+
+  replaceArg (path, arg) {
+    return path.indexOf(':') !== -1 ? path.replace(regex.namedParam, arg) : path.replace(regex.splatParams, arg)
+  },
+
+  isNamedOrSplatParam (param) {
+    return regex.namedParam.test(param) || regex.splatParams.test(param)
+  },
+
+  removeOptionalParams (path) {
+    return path.replace(regex.optionalParams, '')
+  },
+
+  removeTrailingSlash (path) {
+    return path.replace(regex.trailingSlash, '')
+  },
+
+  removeParentheses (path) {
+    return path.replace(regex.parentheses, '')
+  }
+}
+
+const urlComposer = {
   build (options) {
     options = options || {}
 
-    let params = url.params(options)
+    let params = urlComposer.params(options)
     params = params ? `?${params}` : ''
 
-    return `${options.host}${url.path(options)}${params}`
+    return `${options.host || ''}${urlComposer.path(options)}${params}`
   },
 
   path (options) {
     options = options || {}
-    return `${options.path}`
+
+    return pathComposer.parse(options.path, options.pathArgs)
   },
 
   params (options) {
@@ -40,4 +100,4 @@ const url = {
   }
 }
 
-export default url
+export default urlComposer

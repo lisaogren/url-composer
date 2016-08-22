@@ -4,19 +4,93 @@
   (global.urlComposer = factory());
 }(this, function () { 'use strict';
 
-  var url = {
+  /**
+   * url.js - Building dynamic URLs
+   */
+
+  var regex = {
+    headingSlash: /^(\/|#)/,
+    trailingSlash: /\/$/,
+    parentheses: /[\(\)]/g,
+    optionalParams: /\((.*?)\)/g,
+    splatParams: /\*\w+/g,
+    namedParam: /(\(\?)?:\w+/,
+    namedParams: /(\(\?)?:\w+/g
+  }
+
+  var pathComposer = {
+    parse: function parse (path, args) {
+      path = path || ''
+      args = args || []
+
+      if (!args.length) {
+        return pathComposer.removeOptionalParams(path)
+      }
+
+      path = pathComposer.replaceArgs(path, args)
+
+      path = pathComposer.removeTrailingSlash(
+        pathComposer.removeParentheses(path)
+      )
+
+      return path
+    },
+
+    replaceArgs: function replaceArgs (path, args) {
+      args = args || []
+
+      args.forEach(function (arg) {
+        path = pathComposer.replaceArg(path, arg)
+      })
+
+      var matches = path.match(regex.optionalParams)
+
+      if (matches) {
+        matches.forEach(function (part) {
+          if (pathComposer.isNamedOrSplatParam(part)) {
+            path = path.replace(part, '')
+          }
+        })
+      }
+
+      return path
+    },
+
+    replaceArg: function replaceArg (path, arg) {
+      return path.indexOf(':') !== -1 ? path.replace(regex.namedParam, arg) : path.replace(regex.splatParams, arg)
+    },
+
+    isNamedOrSplatParam: function isNamedOrSplatParam (param) {
+      return regex.namedParam.test(param) || regex.splatParams.test(param)
+    },
+
+    removeOptionalParams: function removeOptionalParams (path) {
+      return path.replace(regex.optionalParams, '')
+    },
+
+    removeTrailingSlash: function removeTrailingSlash (path) {
+      return path.replace(regex.trailingSlash, '')
+    },
+
+    removeParentheses: function removeParentheses (path) {
+      return path.replace(regex.parentheses, '')
+    }
+  }
+
+  var urlComposer = {
     build: function build (options) {
       options = options || {}
 
-      var params = url.params(options)
+      var params = urlComposer.params(options)
       params = params ? ("?" + params) : ''
 
-      return ("" + (options.host) + (url.path(options)) + params)
+      return ("" + (options.host || '') + (urlComposer.path(options)) + params)
     },
 
     path: function path (options) {
       options = options || {}
-      return ("" + (options.path))
+
+      return pathComposer.parse(options.path, options.pathArgs)
     },
 
     params: function params (options) {
@@ -32,6 +106,6 @@
     }
   }
 
-  return url;
+  return urlComposer;
 
 }));
