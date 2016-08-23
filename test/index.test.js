@@ -1,12 +1,12 @@
 import test from 'ava'
-import url from '../dist/url-composer'
+import url from '../dist/url-composer.min'
 
 test('url.build - Should build a complete URL according to passed options', t => {
   const options = {
     host: 'https://github.com',
     path: '/:username',
-    pathArgs: ['RasCarlito'],
-    params: { a: 1, b: 2, c: 3 }
+    params: ['RasCarlito'],
+    query: { a: 1, b: 2, c: 3 }
   }
 
   t.is(
@@ -25,14 +25,14 @@ test('url.build - Should build a complete URL according to passed options', t =>
   )
 
   t.is(
-    url.build({ params: { a: 1, b: 2, c: 3 } }),
+    url.build({ query: { a: 1, b: 2, c: 3 } }),
     '?a=1&b=2&c=3'
   )
 })
 
 test('url.path - Should build parameters into path', t => {
   t.is(
-    url.path({ path: '/users/:id', pathArgs: [42] }),
+    url.path({ path: '/users/:id', params: [42] }),
     '/users/42'
   )
 
@@ -47,19 +47,24 @@ test('url.path - Should build parameters into path', t => {
   )
 
   t.is(
-    url.path({ path: '/users(/:id)', pathArgs: [42] }),
+    url.path({ path: '/users(/:id)', params: [42] }),
     '/users/42'
+  )
+
+  t.is(
+    url.path({ path: '/users/:id(/edit/:section)', params: { section: 'profile', id: 42 } }),
+    '/users/42/edit/profile'
   )
 
   t.is(url.path(), '')
 })
 
-test('url.params - Should build a query string from given parameters', t => {
-  const params = url.params({
-    params: { a: 1, b: 2, c: 3 }
+test('url.query - Should build a query string from given parameters', t => {
+  const query = url.query({
+    query: { a: 1, b: 2, c: 3 }
   })
 
-  t.is(params, 'a=1&b=2&c=3')
-  t.is(url.params({ params: {} }), '')
-  t.is(url.params(), '')
+  t.is(query, 'a=1&b=2&c=3')
+  t.is(url.query({ query: {} }), '')
+  t.is(url.query(), '')
 })

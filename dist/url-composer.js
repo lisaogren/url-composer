@@ -8,104 +8,141 @@
    * url.js - Building dynamic URLs
    */
 
-  var regex = {
-    headingSlash: /^(\/|#)/,
-    trailingSlash: /\/$/,
-    parentheses: /[\(\)]/g,
-    optionalParams: /\((.*?)\)/g,
-    splatParams: /\*\w+/g,
-    namedParam: /(\(\?)?:\w+/,
-    namedParams: /(\(\?)?:\w+/g
+  //
+  // Path analysis regular expressions
+  //
+
+  var TRAILING_SLASH = /\/$/
+  var PARENTHESES = /[\(\)]/g
+  var OPTIONAL_PARAMS = /\((.*?)\)/g
+  var SPLAT_PARAMS = /\*\w+/g
+  var NAMED_PARAM = /(\(\?)?:\w+/
+  var NAMED_PARAMS = /(\(\?)?:\w+/g
+
+  //
+  // Helper functions
+  //
+
+  function isArray (obj) {
+    return Object.prototype.toString.call(obj) === '[object Array]'
   }
 
-  var pathComposer = {
-    parse: function parse (path, args) {
-      path = path || ''
-      args = args || []
+  function isEmpty (obj) {
+    if (obj == null) return true
+    if (obj.length > 0) return false
+    if (obj.length === 0) return true
+    if (typeof obj !== 'object') return true
 
-      if (!args.length) {
-        return pathComposer.removeOptionalParams(path)
-      }
+    for (var key in obj) {
+      if (hasOwnProperty.call(obj, key)) return false
+    }
 
-      path = pathComposer.replaceArgs(path, args)
+    return true
+  }
 
-      path = pathComposer.removeTrailingSlash(
-        pathComposer.removeParentheses(path)
-      )
+  //
+  // Path parsing functions
+  //
 
-      return path
-    },
+  function parse (path, args) {
+    path = path || ''
+    args = args || []
 
-    replaceArgs: function replaceArgs (path, args) {
-      args = args || []
+    if (isEmpty(args)) {
+      return removeOptionalParams(path)
+    }
 
-      args.forEach(function (arg) {
-        path = pathComposer.replaceArg(path, arg)
+    path = replaceArgs(path, args)
+
+    return removeTrailingSlash(
+      removeParentheses(path)
+    )
+  }
+
+  function replaceArgs (path, args) {
+    args = args || []
+
+    if (!isArray(args)) {
+      var paramNames = path.match(NAMED_PARAMS)
+      args = paramNames.map(function (name) { return args[name.substr(1)]; })
+    }
+
+    args.forEach(function (arg) {
+      path = replaceArg(path, arg)
+    })
+
+    var matches = path.match(OPTIONAL_PARAMS)
+
+    if (matches) {
+      matches.forEach(function (part) {
+        if (isNamedOrSplatParam(part)) {
+          path = path.replace(part, '')
+        }
       })
-
-      var matches = path.match(regex.optionalParams)
-
-      if (matches) {
-        matches.forEach(function (part) {
-          if (pathComposer.isNamedOrSplatParam(part)) {
-            path = path.replace(part, '')
-          }
-        })
-      }
-
-      return path
-    },
-
-    replaceArg: function replaceArg (path, arg) {
-      return path.indexOf(':') !== -1 ? path.replace(regex.namedParam, arg) : path.replace(regex.splatParams, arg)
-    },
-
-    isNamedOrSplatParam: function isNamedOrSplatParam (param) {
-      return regex.namedParam.test(param) || regex.splatParams.test(param)
-    },
-
-    removeOptionalParams: function removeOptionalParams (path) {
-      return path.replace(regex.optionalParams, '')
-    },
-
-    removeTrailingSlash: function removeTrailingSlash (path) {
-      return path.replace(regex.trailingSlash, '')
-    },
-
-    removeParentheses: function removeParentheses (path) {
-      return path.replace(regex.parentheses, '')
     }
+
+    return path
   }
 
-  var urlComposer = {
-    build: function build (options) {
-      options = options || {}
-
-      var params = urlComposer.params(options)
-      params = params ? ("?" + params) : ''
-
-      return ("" + (options.host || '') + (urlComposer.path(options)) + params)
-    },
-
-    path: function path (options) {
-      options = options || {}
-
-      return pathComposer.parse(options.path, options.pathArgs)
-    },
-
-    params: function params (options) {
-      var params = []
-      options = options || {}
-
-      for (var key in options.params) {
-        var param = options.params[key]
-        params.push((key + "=" + param))
-      }
-
-      return params.length ? params.join('&') : ''
-    }
+  function replaceArg (path, arg) {
+    return path.indexOf(':') !== -1 ? path.replace(NAMED_PARAM, arg) : path.replace(SPLAT_PARAMS, arg)
   }
 
-  return urlComposer;
+  function isNamedOrSplatParam (param) {
+    return NAMED_PARAM.test(param) || SPLAT_PARAMS.test(param)
+  }
+
+  function removeOptionalParams (path) {
+    return path.replace(OPTIONAL_PARAMS, '')
+  }
+
+  function removeTrailingSlash (path) {
+    return path.replace(TRAILING_SLASH, '')
+  }
+
+  function removeParentheses (path) {
+    return path.replace(PARENTHESES, '')
+  }
+
+  //
+  // Public API functions
+  //
+
+  function buildPath (options) {
+    options = options || {}
+
+    return parse(options.path, options.params)
+  }
+
+  function buildQuery (options) {
+    var query = []
+    options = options || {}
+
+    for (var key in options.query) {
+      var param = options.query[key]
+      query.push((key + "=" + param))
+    }
+
+    return query.length ? query.join('&') : ''
+  }
+
+  function build (options) {
+    options = options || {}
+    options.host = options.host || ''
+    options.hash = options.hash ? ("#" + (options.hash)) : ''
+
+    var query = buildQuery(options)
+    query = query ? ("?" + query) : ''
+
+    return ("" + (options.host) + (buildPath(options)) + query + (options.hash))
+  }
+
+  var index = {
+    build: build,
+    path: buildPath,
+    query: buildQuery
+  }
+
+  return index;
 
 }));
