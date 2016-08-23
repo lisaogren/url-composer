@@ -6,12 +6,13 @@ test('url.build - Should build a complete URL according to passed options', t =>
     host: 'https://github.com',
     path: '/:username',
     params: ['RasCarlito'],
-    query: { a: 1, b: 2, c: 3 }
+    query: { a: 1, b: 2, c: 3 },
+    hash: 'meh'
   }
 
   t.is(
     url.build(options),
-    'https://github.com/RasCarlito?a=1&b=2&c=3'
+    'https://github.com/RasCarlito?a=1&b=2&c=3#meh'
   )
 
   t.is(
@@ -28,6 +29,13 @@ test('url.build - Should build a complete URL according to passed options', t =>
     url.build({ query: { a: 1, b: 2, c: 3 } }),
     '?a=1&b=2&c=3'
   )
+
+  t.is(
+    url.build({ hash: 'meh' }),
+    '#meh'
+  )
+
+  t.is(url.build(), '')
 })
 
 test('url.path - Should build parameters into path', t => {
