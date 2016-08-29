@@ -12,6 +12,7 @@ const OPTIONAL_PARAMS = /\((.*?)\)/g
 const SPLAT_PARAMS = /\*\w+/g
 const NAMED_PARAM = /(\(\?)?:\w+/
 const NAMED_PARAMS = /(\(\?)?:\w+/g
+const ESCAPE = /[\-{}\[\]+?.,\\\^$|#\s]/g
 
 //
 // Helper functions
@@ -98,6 +99,15 @@ function removeParentheses (path) {
   return path.replace(PARENTHESES, '')
 }
 
+function routeToRegex (route) {
+  route = route.replace(ESCAPE, '\\$&')
+    .replace(OPTIONAL_PARAMS, '(?:$1)?')
+    .replace(NAMED_PARAMS, (match, optional) => optional ? match : '([^/?]+)')
+    .replace(SPLAT_PARAMS, '([^?]*?)')
+
+  return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
+}
+
 //
 // Public API functions
 //
@@ -120,6 +130,14 @@ function buildQuery (options) {
   return query.length ? query.join('&') : ''
 }
 
+function test (options) {
+  options = options || {}
+
+  const re = routeToRegex(options.path)
+
+  return re.test(options.url)
+}
+
 function build (options) {
   options = options || {}
   options.host = options.host || ''
@@ -133,6 +151,8 @@ function build (options) {
 
 export default {
   build,
+  test,
   path: buildPath,
-  query: buildQuery
+  query: buildQuery,
+  regex: routeToRegex,
 }
