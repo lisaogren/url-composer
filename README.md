@@ -72,6 +72,23 @@ url.build({
 // "/users/42/edit/profile"
 ```
 
+## Testing a path
+
+You can test a path to validate that it corresponds to a given schema
+
+```js
+const path = '/users/:id(/edit/:section)'
+
+// Testing path directly
+url.test({ path, url: '/users/42' }) // true
+url.test({ path, url: '/something/different' }) // false
+
+// Getting the regex instead
+const re = url.regex(path)
+
+re.test('/users/42/edit/profile') // true
+```
+
 # License
 
 [MIT](https://opensource.org/licenses/MIT)
