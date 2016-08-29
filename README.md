@@ -44,6 +44,8 @@ The path option has an advanced syntax to handle injection of parameters.
 Like in the first example
 
 ```js
+import url from 'url-composer'
+
 url.build({
   path: '/users/:id',
   params: { id: 42 }
@@ -57,6 +59,8 @@ With optional parameters you can make a portion of the `path` optional using par
 Depending on the `params` passed that portion will be included or left out.
 
 ```js
+import url from 'url-composer'
+
 const path = '/users/:id(/edit/:section)'
 
 url.build({
@@ -77,6 +81,8 @@ url.build({
 You can test a path to validate that it corresponds to a given schema
 
 ```js
+import url from 'url-composer'
+
 const path = '/users/:id(/edit/:section)'
 
 // Testing path directly
