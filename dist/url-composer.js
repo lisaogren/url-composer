@@ -160,7 +160,7 @@
     test: test,
     path: buildPath,
     query: buildQuery,
-    regex: routeToRegex,
+    regex: routeToRegex
   }
 
   return index;

@@ -154,5 +154,5 @@ export default {
   test,
   path: buildPath,
   query: buildQuery,
-  regex: routeToRegex,
+  regex: routeToRegex
 }
