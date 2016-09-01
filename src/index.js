@@ -1,5 +1,5 @@
 /**
- * url.js - Building dynamic URLs
+ * url-composer.js - Building dynamic URLs
  */
 
 //
