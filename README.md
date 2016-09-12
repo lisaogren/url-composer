@@ -35,6 +35,8 @@ url.build({
 
 Everything is optional. So calling `url.build()` without any parameters would just generate an empty `String`.
 
+*Note: Path and query parameters are encoded using `encodeURIComponent`*
+
 ## Path options
 
 The path option has an advanced syntax to handle injection of parameters.
