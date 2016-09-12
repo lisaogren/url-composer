@@ -80,7 +80,14 @@ function replaceArgs (path, args) {
 }
 
 function replaceArg (path, arg) {
-  return path.indexOf(':') !== -1 ? path.replace(NAMED_PARAM, arg) : path.replace(SPLAT_PARAMS, arg)
+  const hasNamedParam = path.indexOf(':') !== -1
+  arg = encodeURIComponent(arg)
+
+  if (hasNamedParam) {
+    return path.replace(NAMED_PARAM, arg)
+  }
+
+  return path.replace(SPLAT_PARAMS, arg)
 }
 
 function isNamedOrSplatParam (param) {
@@ -124,7 +131,7 @@ function buildQuery (options) {
 
   for (let key in options.query) {
     const param = options.query[key]
-    query.push(`${key}=${param}`)
+    query.push(`${key}=${encodeURIComponent(param)}`)
   }
 
   return query.length ? query.join('&') : ''
