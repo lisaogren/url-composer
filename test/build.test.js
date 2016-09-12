@@ -1,7 +1,7 @@
 import test from 'ava'
 import url from '../dist/url-composer'
 
-test('url.build - Should build a complete URL according to passed options', t => {
+test('Should build a complete URL according to passed options', t => {
   const options = {
     host: 'https://github.com',
     path: '/:username',
