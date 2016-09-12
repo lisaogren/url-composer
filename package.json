@@ -16,6 +16,10 @@
     "lint-fix": "./node_modules/.bin/standard --fix src/**/*.js",
     "test": "ava --verbose"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "dependencies": {},
   "devDependencies": {
     "ava": "^0.16.0",
