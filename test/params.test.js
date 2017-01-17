@@ -13,4 +13,9 @@ test('Should convert arguments array to object', t => {
     url.params(userProfilePath, []),
     { name: undefined, section: undefined }
   )
+
+  t.deepEqual(
+    url.params('/static/path/definition', ['random', 'args']),
+    {}
+  )
 })

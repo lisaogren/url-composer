@@ -267,9 +267,11 @@
     var result = {}
     var paramNames = path.match(NAMED_PARAMS)
 
-    paramNames.forEach(function (name, i) {
-      result[name.slice(1)] = args[i]
-    })
+    if (paramNames) {
+      paramNames.forEach(function (name, i) {
+        result[name.slice(1)] = args[i]
+      })
+    }
 
     return result
   }

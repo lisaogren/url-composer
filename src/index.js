@@ -261,9 +261,11 @@ function params (path, args) {
   const result = {}
   const paramNames = path.match(NAMED_PARAMS)
 
-  paramNames.forEach((name, i) => {
-    result[name.slice(1)] = args[i]
-  })
+  if (paramNames) {
+    paramNames.forEach((name, i) => {
+      result[name.slice(1)] = args[i]
+    })
+  }
 
   return result
 }
