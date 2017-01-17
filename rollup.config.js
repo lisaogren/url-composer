@@ -19,7 +19,4 @@ export default {
   targets: [
     { dest: dest[env], format: 'umd', moduleName: 'urlComposer' }
   ]
-  // globals: {
-  //   underscore: '_'
-  // }
 }
