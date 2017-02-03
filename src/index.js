@@ -7,6 +7,7 @@
 //
 
 const TRAILING_SLASH = /\/$/
+const LEADING_SLASH = /^\//
 const PARENTHESES = /[\(\)]/g
 const OPTIONAL_PARAMS = /\((.*?)\)/g
 const SPLAT_PARAMS = /\*\w+/g
@@ -158,6 +159,16 @@ function removeTrailingSlash (path) {
 }
 
 /**
+ * removeLeadingSlash - Remove the first character from a path if it is a slash
+ *
+ * @param  {string} path The path to modify
+ * @return {string}      The modified path
+ */
+function removeLeadingSlash (path) {
+  return path.replace(LEADING_SLASH, '')
+}
+
+/**
  * removeParentheses - Remove/clean remaining parentheses from a path after it has been parsed
  *
  * @param  {string} path The path to modify/clean
@@ -180,6 +191,21 @@ function routeToRegex (route) {
     .replace(SPLAT_PARAMS, '([^?]*?)')
 
   return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
+}
+
+function smartConcat (options) {
+  let { host, path, query, hash } = options
+
+  // Normalize parts
+  host = removeTrailingSlash(host)
+  path = removeTrailingSlash(removeLeadingSlash(path))
+
+  // Add specific glue characters
+  path = path ? `/${path}` : ''
+  query = query ? `?${query}` : ''
+  hash = hash ? `#${hash}` : ''
+
+  return `${host}${path}${query}${hash}`
 }
 
 //
@@ -238,16 +264,17 @@ function test (options) {
  * @param  {object} options An object containing `host`, `path`, `params`, `query` and `hash`.
  *                          Everything is optional, calling `build` without any parameters will just return an empty string.
  * @return {string}         The built URL
+ *
+ * @TODO Split host and protocol
  */
 function build (options) {
   options = options || {}
   options.host = options.host || ''
-  options.hash = options.hash ? `#${options.hash}` : ''
 
-  let query = buildQuery(options)
-  query = query ? `?${query}` : ''
+  const path = buildPath(options)
+  const query = buildQuery(options)
 
-  return `${options.host}${buildPath(options)}${query}${options.hash}`
+  return smartConcat({ host: options.host, path, query, hash: options.hash })
 }
 
 /**
@@ -260,14 +287,41 @@ function build (options) {
 function params (path, args) {
   const result = {}
   const paramNames = path.match(NAMED_PARAMS)
+  const splatNames = path.match(SPLAT_PARAMS)
+
+  let i = 0
 
   if (paramNames) {
-    paramNames.forEach((name, i) => {
-      result[name.slice(1)] = args[i]
+    paramNames.forEach((name) => {
+      result[name.slice(1)] = args[i++]
+    })
+  }
+
+  if (splatNames) {
+    splatNames.forEach((name) => {
+      result[name.slice(1)] = args[i++]
     })
   }
 
   return result
+}
+
+/**
+ * stats - Generate stats about a path
+ *
+ * @param  {string} path Dynamic path definition
+ * @return {object}      Object containing different stats about the path
+ */
+function stats (path) {
+  const data = {}
+  const params = path.match(NAMED_PARAMS)
+
+  data.params = {
+    names: params,
+    length: params && params.length
+  }
+
+  return data
 }
 
 /**
@@ -277,6 +331,7 @@ export default {
   build,
   test,
   params,
+  stats,
   path: buildPath,
   query: buildQuery,
   regex: routeToRegex
