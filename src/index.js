@@ -1,26 +1,61 @@
 /**
- * # url-composer.js - Building dynamic URLs
+ * @module urlComposer
+ * @description Module to build dynamic URLs without a fuss
  */
 
 //
-// ## Path analysis regular expressions
-//
-
-const TRAILING_SLASH = /\/$/
-const LEADING_SLASH = /^\//
-const PARENTHESES = /[\(\)]/g
-const OPTIONAL_PARAMS = /\((.*?)\)/g
-const SPLAT_PARAMS = /\*\w+/g
-const NAMED_PARAM = /(\(\?)?:\w+/
-const NAMED_PARAMS = /(\(\?)?:\w+/g
-const ESCAPE = /[\-{}\[\]+?.,\\\^$|#\s]/g
-
-//
-// ## Helper functions
+// Path analysis regular expressions
 //
 
 /**
- * isArray - Checks if a given object is an array
+ * Trailing slash regular expression
+ * @private
+ */
+const TRAILING_SLASH = /\/$/
+/**
+ * Leading slash regular expression
+ * @private
+ */
+const LEADING_SLASH = /^\//
+/**
+ * Parentheses global regular expression
+ * @private
+ */
+const PARENTHESES = /[\(\)]/g
+/**
+ * Optional parameters global regular expression
+ * @private
+ */
+const OPTIONAL_PARAMS = /\((.*?)\)/g
+/**
+ * Splat parameters global regular expression
+ * @private
+ */
+const SPLAT_PARAMS = /\*\w+/g
+/**
+ * Named parameter regular expression
+ * @private
+ */
+const NAMED_PARAM = /(\(\?)?:\w+/
+/**
+ * Named parameters global regular expression
+ * @private
+ */
+const NAMED_PARAMS = /(\(\?)?:\w+/g
+/**
+ * Some wierd escape regular expression
+ * @private
+ */
+const ESCAPE = /[\-{}\[\]+?.,\\\^$|#\s]/g
+
+//
+// Helper functions
+//
+
+/**
+ * Checks if a given object is an array
+ *
+ * @private
  *
  * @param  {mixed} obj The object to check
  * @return {boolean}   `true` if `obj` is an array else `false`
@@ -30,7 +65,9 @@ function isArray (obj) {
 }
 
 /**
- * isEmpty - Check if a given object is empty
+ * Check if a given object is empty
+ *
+ * @private
  *
  * @param  {object} obj The object to check
  * @return {boolean}    `true` if `obj` is empty else `false`
@@ -53,7 +90,9 @@ function isEmpty (obj) {
 //
 
 /**
- * parse - Inject arguments into a dynamic path definition and clean unused optional parts
+ * Inject arguments into a dynamic path definition and clean unused optional parts
+ *
+ * @private
  *
  * @param  {string} path The dynamic path definition
  * @param  {mixed}  args Object or array of arguments to inject.
@@ -77,7 +116,9 @@ function parse (path, args) {
 }
 
 /**
- * replaceArgs - Replace dynamic parts of a path by given values
+ * Replace dynamic parts of a path by given values
+ *
+ * @private
  *
  * @param  {string} path The dynamic path definition
  * @param  {mixed}  args Object or array of arguments to inject.
@@ -111,7 +152,9 @@ function replaceArgs (path, args) {
 }
 
 /**
- * replaceArg - Replace the first matching dynamic part of a path by the given argument
+ * Replace the first matching dynamic part of a path by the given argument
+ *
+ * @private
  *
  * @param  {string} path The dynamic path definition
  * @param  {mixed}  arg  The value to inject
@@ -129,7 +172,9 @@ function replaceArg (path, arg) {
 }
 
 /**
- * isNamedOrSplatParam - Check if the next dynamic part in a path is a named or splat parameter definition
+ * Check if the next dynamic part in a path is a named or splat parameter definition
+ *
+ * @private
  *
  * @param  {string} param Dynamic part of a dynamic path definition
  * @return {boolean}      `true` if `param` is a named or splat parameter else `false`
@@ -139,7 +184,9 @@ function isNamedOrSplatParam (param) {
 }
 
 /**
- * removeOptionalParams - Strip the unfilled optional parameters from a dynamic path definition
+ * Strip the unfilled optional parameters from a dynamic path definition
+ *
+ * @private
  *
  * @param  {string} path The dynamic path to modify
  * @return {string}      The modified path
@@ -149,7 +196,9 @@ function removeOptionalParams (path) {
 }
 
 /**
- * removeTrailingSlash - Remove the last character from a path if it is a slash
+ * Remove the last character from a path if it is a slash
+ *
+ * @private
  *
  * @param  {string} path The path to modify
  * @return {string}      The modified path
@@ -159,7 +208,9 @@ function removeTrailingSlash (path) {
 }
 
 /**
- * removeLeadingSlash - Remove the first character from a path if it is a slash
+ * Remove the first character from a path if it is a slash
+ *
+ * @private
  *
  * @param  {string} path The path to modify
  * @return {string}      The modified path
@@ -169,7 +220,9 @@ function removeLeadingSlash (path) {
 }
 
 /**
- * removeParentheses - Remove/clean remaining parentheses from a path after it has been parsed
+ * Remove/clean remaining parentheses from a path after it has been parsed
+ *
+ * @private
  *
  * @param  {string} path The path to modify/clean
  * @return {string}      The modified path
@@ -179,20 +232,13 @@ function removeParentheses (path) {
 }
 
 /**
- * routeToRegex - Transform a dynamic path definition to an executable regular expression
+ * Smart concatenation of host, path, query and hash. Will add the correct glue character when needed
  *
- * @param  {string} route The route/path to transform
- * @return {RegExp}       The resulting regular expression instance
+ * @private
+ *
+ * @param  {object} options Object describing the url
+ * @return {string}         Concatenation of host, path, query and hash
  */
-function routeToRegex (route) {
-  route = route.replace(ESCAPE, '\\$&')
-    .replace(OPTIONAL_PARAMS, '(?:$1)?')
-    .replace(NAMED_PARAMS, (match, optional) => optional ? match : '([^/?]+)')
-    .replace(SPLAT_PARAMS, '([^?]*?)')
-
-  return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
-}
-
 function smartConcat (options) {
   let { host, path, query, hash } = options
 
@@ -213,7 +259,47 @@ function smartConcat (options) {
 //
 
 /**
- * buildPath - Build the path part of a URL using dynamic path definitions
+ * Retrieve matches for named and splat params for a dynamic path definition
+ *
+ * @name match
+ * @function
+ * @public
+ *
+ * @param  {string} path Dynamic path definition
+ * @return {object}      Object with a `named` and `splat` array containing the extracted parameter names
+ */
+function getParamsMatch (path) {
+  return {
+    named: path.match(NAMED_PARAMS) || [],
+    splat: path.match(SPLAT_PARAMS) || []
+  }
+}
+
+/**
+ * Transform a dynamic path definition to an executable regular expression
+ *
+ * @name regex
+ * @function
+ * @public
+ *
+ * @param  {string} route The route/path to transform
+ * @return {RegExp}       The resulting regular expression instance
+ */
+function routeToRegex (route) {
+  route = route.replace(ESCAPE, '\\$&')
+    .replace(OPTIONAL_PARAMS, '(?:$1)?')
+    .replace(NAMED_PARAMS, (match, optional) => optional ? match : '([^/?]+)')
+    .replace(SPLAT_PARAMS, '([^?]*?)')
+
+  return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
+}
+
+/**
+ * Build the path part of a URL using dynamic path definitions
+ *
+ * @name path
+ * @function
+ * @public
  *
  * @param  {object} options An object containing `path` and `params` keys which will be used to build the resulting path.
  * @return {string}         The built path
@@ -225,7 +311,11 @@ function buildPath (options) {
 }
 
 /**
- * buildQuery - Build the query part of a URL
+ * Build the query part of a URL
+ *
+ * @name query
+ * @function
+ * @public
  *
  * @param  {object} options An object containing a `query` key. The `key` should be an object of key/value pairs that
  *                          will be converted to a URL query string.
@@ -244,7 +334,9 @@ function buildQuery (options) {
 }
 
 /**
- * test - Test a URL against a dynamic path definition
+ * Test a URL against a dynamic path definition
+ *
+ * @public
  *
  * @param  {object} options An object with `path` and `url` keys.
  *                          The `path` is the dynamic path definition against which the `url` will be tested
@@ -259,7 +351,9 @@ function test (options) {
 }
 
 /**
- * build - Build a complete URL
+ * Build a complete URL
+ *
+ * @public
  *
  * @param  {object} options An object containing `host`, `path`, `params`, `query` and `hash`.
  *                          Everything is optional, calling `build` without any parameters will just return an empty string.
@@ -278,7 +372,9 @@ function build (options) {
 }
 
 /**
- * args - Transform an arguments array into an object using the dynamic path definition
+ * Transform an arguments array into an object using the dynamic path definition
+ *
+ * @public
  *
  * @param  {string} path The dynamic path definition
  * @param  {array}  args Arguments array
@@ -286,47 +382,61 @@ function build (options) {
  */
 function params (path, args) {
   const result = {}
-  const paramNames = path.match(NAMED_PARAMS)
-  const splatNames = path.match(SPLAT_PARAMS)
+  const params = getParamsMatch(path)
 
   let i = 0
 
-  if (paramNames) {
-    paramNames.forEach((name) => {
-      result[name.slice(1)] = args[i++]
-    })
-  }
-
-  if (splatNames) {
-    splatNames.forEach((name) => {
-      result[name.slice(1)] = args[i++]
-    })
-  }
+  params.named.forEach(parse)
+  params.splat.forEach(parse)
 
   return result
+
+  // Helper
+
+  function parse (name) {
+    result[name.slice(1)] = args[i++]
+  }
 }
 
 /**
- * stats - Generate stats about a path
+ * Generate stats about a path
+ *
+ * @public
  *
  * @param  {string} path Dynamic path definition
+ * @param  {object} args Object of arguments to analyze the state of path if it was injected with the given parameters
  * @return {object}      Object containing different stats about the path
  */
-function stats (path) {
-  const data = {}
-  const params = path.match(NAMED_PARAMS)
+function stats (path, args) {
+  const optional = path.match(OPTIONAL_PARAMS)
+  const { named, splat } = getParamsMatch(path)
 
-  data.params = {
-    names: params,
-    length: params && params.length
-  }
+  let params = named.concat(splat)
 
-  return data
+  args = args || {}
+
+  params = params.map((param) => {
+    let isOptional = false
+
+    for (let i = 0; i < optional.length; i++) {
+      const p = optional[i]
+      if (p.indexOf(param) !== -1) {
+        isOptional = true
+        break
+      }
+    }
+
+    return {
+      name: param,
+      value: args[param.slice(1)] || '',
+      optional: isOptional,
+      required: !isOptional
+    }
+  })
+
+  return { params }
 }
 
-/**
- * Export public API
- */
 export default {
   build,
   test,
@@ -334,5 +444,6 @@ export default {
   stats,
   path: buildPath,
   query: buildQuery,
-  regex: routeToRegex
+  regex: routeToRegex,
+  match: getParamsMatch
 }
