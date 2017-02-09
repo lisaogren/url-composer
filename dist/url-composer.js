@@ -405,13 +405,15 @@
   /**
    * Transform an arguments array into an object using the dynamic path definition
    *
+   * @name params
+   * @function
    * @public
    *
    * @param  {string} path The dynamic path definition
    * @param  {array}  args Arguments array
    * @return {object}      The resulting key/value pairs
    */
-  function params (path, args) {
+  function paramsArray2Object (path, args) {
     var result = {}
     var params = getParamsMatch(path)
 
@@ -439,7 +441,7 @@
    * @return {object}      Object containing different stats about the path
    */
   function stats (path, args) {
-    var optional = path.match(OPTIONAL_PARAMS)
+    var optional = path.match(OPTIONAL_PARAMS) || []
     var ref = getParamsMatch(path);
     var named = ref.named;
     var splat = ref.splat;
@@ -447,6 +449,10 @@
     var params = named.concat(splat)
 
     args = args || {}
+
+    if (isArray(args)) {
+      args = paramsArray2Object(path, args)
+    }
 
     params = params.map(function (param) {
       var isOptional = false
@@ -479,8 +485,8 @@
   var index = {
     build: build,
     test: test,
-    params: params,
     stats: stats,
+    params: paramsArray2Object,
     path: buildPath,
     query: buildQuery,
     regex: routeToRegex,

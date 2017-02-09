@@ -396,13 +396,15 @@ function build (options) {
 /**
  * Transform an arguments array into an object using the dynamic path definition
  *
+ * @name params
+ * @function
  * @public
  *
  * @param  {string} path The dynamic path definition
  * @param  {array}  args Arguments array
  * @return {object}      The resulting key/value pairs
  */
-function params (path, args) {
+function paramsArray2Object (path, args) {
   const result = {}
   const params = getParamsMatch(path)
 
@@ -430,12 +432,16 @@ function params (path, args) {
  * @return {object}      Object containing different stats about the path
  */
 function stats (path, args) {
-  const optional = path.match(OPTIONAL_PARAMS)
+  const optional = path.match(OPTIONAL_PARAMS) || []
   const { named, splat } = getParamsMatch(path)
 
   let params = named.concat(splat)
 
   args = args || {}
+
+  if (isArray(args)) {
+    args = paramsArray2Object(path, args)
+  }
 
   params = params.map((param) => {
     let isOptional = false
@@ -468,8 +474,8 @@ function stats (path, args) {
 export default {
   build,
   test,
-  params,
   stats,
+  params: paramsArray2Object,
   path: buildPath,
   query: buildQuery,
   regex: routeToRegex,

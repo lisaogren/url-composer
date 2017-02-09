@@ -79,4 +79,21 @@ test('Should generate stats about a path and its parameters', t => {
       ]
     }
   )
+
+  t.deepEqual(
+    url.stats(
+      '/path/:with/some/:params',
+      ['with', 'params']
+    ),
+    {
+      params: [
+        { name: ':with', value: 'with', required: true, optional: false },
+        { name: ':params', value: 'params', required: true, optional: false }
+      ],
+      hasOptionalParams: false,
+      missingOptionalParams: [],
+      missingRequiredParams: [],
+      missingParams: []
+    }
+  )
 })
