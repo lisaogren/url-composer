@@ -5,7 +5,7 @@
 }(this, function () { 'use strict';
 
   /**
-   * @module urlComposer
+   * @module url-composer
    * @description Module to build dynamic URLs without a fuss
    */
 
@@ -263,6 +263,28 @@
     return ("" + host + path + query + hash)
   }
 
+  /**
+   * Test the existence of certain fields in the stats
+   *
+   * @private
+   *
+   * @param  {array}  params List of analyzed parameters
+   * @param  {string} field  Name of the field to analyze
+   * @return {array}         Filtered array
+   */
+  function testParameter (params, field) {
+    var result = []
+
+    for (var i = 0; i < params.length; i++) {
+      var p = params[i]
+      if (p[field] && p.value === '') {
+        result.push(p)
+      }
+    }
+
+    return result
+  }
+
   //
   // ## Public API functions
   //
@@ -445,7 +467,13 @@
       }
     })
 
-    return { params: params }
+    return {
+      params: params,
+      hasOptionalParams: OPTIONAL_PARAMS.test(path),
+      missingOptionalParams: testParameter(params, 'optional'),
+      missingRequiredParams: testParameter(params, 'required'),
+      missingParams: testParameter(params, 'name')
+    }
   }
 
   var index = {
