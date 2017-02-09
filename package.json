@@ -16,7 +16,8 @@
     "lint": "./node_modules/.bin/standard --verbose src/**/*.js | ./node_modules/.bin/snazzy",
     "lint-fix": "./node_modules/.bin/standard --fix src/**/*.js",
     "test": "ava --verbose",
-    "docs": "jsdoc -c jsdoc.json src/index.js README.md"
+    "docs": "jsdoc -c jsdoc.json src/index.js README.md",
+    "publish-docs": "git push origin `git subtree split --prefix docs master`:gh-pages --force"
   },
   "files": [
     "dist",
