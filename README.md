@@ -1,6 +1,6 @@
 # url-composer
 
-Small lib for building dynamic URLs
+Small lib for parsing and building dynamic URLs
 
 # Install
 
@@ -95,6 +95,48 @@ url.test({ path, url: '/something/different' }) // false
 const re = url.regex(path)
 
 re.test('/users/42/edit/profile') // true
+```
+
+## Parsing a path
+
+You can parse a path to extract the dynamic parts into an `Array` or an `Object`.
+
+It will also extract the search query if it is present and place it as the last item in the resulting `Array` or in a `query` key in the resulting `Object`.
+
+Lets look at some code to actually see how it works:
+
+```js
+import url from 'url-composer'
+
+// Parsing dynamic parts into an Array
+url.parse({
+  path: '/users/42/edit/profile',
+  definition: '/users/:id(/edit/:section)'
+})
+// ['42', 'profile', null]
+
+// Parsing dynamic parts into an Object
+url.parse({
+  path: '/users/42/edit/profile',
+  definition: '/users/:id(/edit/:section)',
+  object: true
+})
+// { id: '42', section: 'profile', query: null }
+
+// Parsing a path with a search query
+url.parse({
+  path: '/users/42/edit/profile?expand=true',
+  definition: '/users/:id(/edit/:section)'
+})
+// ['42', 'profile', 'expand=true']
+
+// Parsing dynamic parts into an Object
+url.parse({
+  path: '/users/42/edit/profile?expand=true',
+  definition: '/users/:id(/edit/:section)',
+  object: true
+})
+// { id: '42', section: 'profile', query: 'expand=true' }
 ```
 
 # License
