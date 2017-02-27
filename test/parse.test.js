@@ -31,6 +31,25 @@ test('Should extract optional parameters', t => {
   )
 })
 
+test('Should set missing optional params to null', t => {
+  t.deepEqual(
+    url.parse({
+      path: '/missing/optional',
+      definition: '/missing/:optional(/:param)'
+    }),
+    ['optional', null, null]
+  )
+
+  t.deepEqual(
+    url.parse({
+      path: '/missing/optional',
+      definition: '/missing/:optional(/:param)',
+      object: true
+    }),
+    { optional: 'optional', param: null, query: null }
+  )
+})
+
 test('Should extract splat parameters', t => {
   t.deepEqual(
     url.parse({
