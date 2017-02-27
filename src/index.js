@@ -472,16 +472,20 @@ function stats (path, args) {
 }
 
 /**
- * parse - Parse a given url `path` according to its `definition` to extract the parameters
+ * Parse a given url `path` according to its `definition` to extract the parameters
  *
  * @public
  *
- * @param  {object} options = {} Object containing a `path` and dynamic path `definition`.
- *                               Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
- * @return {mixed}               Array of parameter values extracted from the path or key/value pair object.
+ * @param  {object} options Object containing a `path` and dynamic path `definition`.
+ *                          Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
+ * @return {mixed}          Array of parameter values extracted from the path or key/value pair object.
  */
 function parse (options = {}) {
   const { path, definition, object } = options
+
+  if (!path && !definition) {
+    throw new Error('url-composer: Missing path and definition')
+  }
 
   const re = routeToRegex(definition)
 

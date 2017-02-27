@@ -483,13 +483,13 @@
   }
 
   /**
-   * parse - Parse a given url `path` according to its `definition` to extract the parameters
+   * Parse a given url `path` according to its `definition` to extract the parameters
    *
    * @public
    *
-   * @param  {object} options = {} Object containing a `path` and dynamic path `definition`.
-   *                               Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
-   * @return {mixed}               Array of parameter values extracted from the path or key/value pair object.
+   * @param  {object} options Object containing a `path` and dynamic path `definition`.
+   *                          Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
+   * @return {mixed}          Array of parameter values extracted from the path or key/value pair object.
    */
   function parse (options) {
     if ( options === void 0 ) options = {};
@@ -497,6 +497,10 @@
     var path = options.path;
     var definition = options.definition;
     var object = options.object;
+
+    if (!path && !definition) {
+      throw new Error('url-composer: Missing path and definition')
+    }
 
     var re = routeToRegex(definition)
 

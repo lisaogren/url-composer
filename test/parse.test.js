@@ -81,3 +81,12 @@ test('Should set the search query string in a query key', t => {
     { query: 'query=parameters' }
   )
 })
+
+test('Should throw an error if necessary parameters are missing', t => {
+  const error = t.throws(
+    () => url.parse(),
+    Error
+  )
+
+  t.is(error.message, 'url-composer: Missing path and definition')
+})
