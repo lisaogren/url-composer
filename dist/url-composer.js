@@ -506,7 +506,11 @@
 
     var re = routeToRegex(definition)
 
-    var params = re.exec(path).slice(1)
+    var params = re.exec(path)
+
+    if (!params) return null
+
+    params = params.slice(1)
 
     var result = params.map(function (param, i) {
       if (i === params.length - 1) return param || null

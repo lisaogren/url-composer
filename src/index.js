@@ -481,6 +481,7 @@ function stats (path, args) {
  * @param  {object} options Object containing a `path` and dynamic path `definition`.
  *                          Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
  * @return {mixed}          Array of parameter values extracted from the path or key/value pair object.
+ *                          Return `null` if the `path` does not match the `definition`.
  */
 function parse (options = {}) {
   const { path, definition, object } = options
@@ -491,7 +492,11 @@ function parse (options = {}) {
 
   const re = routeToRegex(definition)
 
-  const params = re.exec(path).slice(1)
+  let params = re.exec(path)
+
+  if (!params) return null
+
+  params = params.slice(1)
 
   let result = params.map((param, i) => {
     if (i === params.length - 1) return param || null

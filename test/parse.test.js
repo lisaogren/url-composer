@@ -90,3 +90,13 @@ test('Should throw an error if necessary parameters are missing', t => {
 
   t.is(error.message, 'url-composer: Missing path and definition')
 })
+
+test('Should return null if path does not match definition', t => {
+  t.is(
+    url.parse({
+      path: '/some/random/path',
+      definition: '/another/:definition'
+    }),
+    null
+  )
+})
