@@ -103,6 +103,8 @@ You can parse a path to extract the dynamic parts into an `Array` or an `Object`
 
 It will also extract the search query if it is present and place it as the last item in the resulting `Array` or in a `query` key in the resulting `Object`.
 
+Missing optional parameters will result to `null` in the extracted values.
+
 Lets look at some code to actually see how it works:
 
 ```js
