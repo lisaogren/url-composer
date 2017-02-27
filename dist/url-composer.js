@@ -106,7 +106,7 @@
    *                       For an object, the object keys will be used to map values to the dynamic parts of the path.
    * @return {string}      The parsed path with injected arguments
    */
-  function parse (path, args) {
+  function composePath (path, args) {
     path = path || ''
     args = args || []
 
@@ -338,7 +338,7 @@
   function buildPath (options) {
     options = options || {}
 
-    return parse(options.path, options.params)
+    return composePath(options.path, options.params)
   }
 
   /**
@@ -419,14 +419,14 @@
 
     var i = 0
 
-    params.named.forEach(parse)
-    params.splat.forEach(parse)
+    params.named.forEach(compose)
+    params.splat.forEach(compose)
 
     return result
 
     // Helper
 
-    function parse (name) {
+    function compose (name) {
       result[name.slice(1)] = args[i++]
     }
   }
@@ -482,10 +482,45 @@
     }
   }
 
+  /**
+   * parse - Parse a given url `path` according to its `definition` to extract the parameters
+   *
+   * @public
+   *
+   * @param  {object} options = {} Object containing a `path` and dynamic path `definition`.
+   *                               Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
+   * @return {mixed}               Array of parameter values extracted from the path or key/value pair object.
+   */
+  function parse (options) {
+    if ( options === void 0 ) options = {};
+
+    var path = options.path;
+    var definition = options.definition;
+    var object = options.object;
+
+    var re = routeToRegex(definition)
+
+    var params = re.exec(path).slice(1)
+
+    var result = params.map(function (param, i) {
+      if (i === params.length - 1) return param || null
+      return param ? decodeURIComponent(param) : null
+    })
+
+    if (object) {
+      var query = result.pop()
+      result = paramsArray2Object(definition, result)
+      result.query = query
+    }
+
+    return result
+  }
+
   var index = {
     build: build,
     test: test,
     stats: stats,
+    parse: parse,
     params: paramsArray2Object,
     path: buildPath,
     query: buildQuery,

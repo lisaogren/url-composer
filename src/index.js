@@ -100,7 +100,7 @@ function isEmpty (obj) {
  *                       For an object, the object keys will be used to map values to the dynamic parts of the path.
  * @return {string}      The parsed path with injected arguments
  */
-function parse (path, args) {
+function composePath (path, args) {
   path = path || ''
   args = args || []
 
@@ -329,7 +329,7 @@ function routeToRegex (route) {
 function buildPath (options) {
   options = options || {}
 
-  return parse(options.path, options.params)
+  return composePath(options.path, options.params)
 }
 
 /**
@@ -410,14 +410,14 @@ function paramsArray2Object (path, args) {
 
   let i = 0
 
-  params.named.forEach(parse)
-  params.splat.forEach(parse)
+  params.named.forEach(compose)
+  params.splat.forEach(compose)
 
   return result
 
   // Helper
 
-  function parse (name) {
+  function compose (name) {
     result[name.slice(1)] = args[i++]
   }
 }
@@ -471,10 +471,41 @@ function stats (path, args) {
   }
 }
 
+/**
+ * parse - Parse a given url `path` according to its `definition` to extract the parameters
+ *
+ * @public
+ *
+ * @param  {object} options = {} Object containing a `path` and dynamic path `definition`.
+ *                               Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
+ * @return {mixed}               Array of parameter values extracted from the path or key/value pair object.
+ */
+function parse (options = {}) {
+  const { path, definition, object } = options
+
+  const re = routeToRegex(definition)
+
+  const params = re.exec(path).slice(1)
+
+  let result = params.map((param, i) => {
+    if (i === params.length - 1) return param || null
+    return param ? decodeURIComponent(param) : null
+  })
+
+  if (object) {
+    const query = result.pop()
+    result = paramsArray2Object(definition, result)
+    result.query = query
+  }
+
+  return result
+}
+
 export default {
   build,
   test,
   stats,
+  parse,
   params: paramsArray2Object,
   path: buildPath,
   query: buildQuery,
