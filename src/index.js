@@ -476,6 +476,8 @@ function stats (path, args) {
  *
  * @public
  *
+ * @throws {Error} Throws if `options` object is missing `path` or `definition`
+ *
  * @param  {object} options Object containing a `path` and dynamic path `definition`.
  *                          Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
  * @return {mixed}          Array of parameter values extracted from the path or key/value pair object.
