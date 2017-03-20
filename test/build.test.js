@@ -36,4 +36,14 @@ test('Should build a complete URL according to passed options', t => {
   )
 
   t.is(url.build(), '')
+
+  t.is(
+    url.build({ path: '/users/:id(/edit/:section)', params: { id: 42 } }),
+    '/users/42'
+  )
+
+  t.is(
+    url.build({ path: '/users/:id(/edit/:section)', params: { id: 42, section: 'profile' } }),
+    '/users/42/edit/profile'
+  )
 })

@@ -135,7 +135,7 @@ function replaceArgs (path, args) {
   }
 
   args.forEach(arg => {
-    path = replaceArg(path, arg)
+    if (arg) path = replaceArg(path, arg)
   })
 
   const matches = path.match(OPTIONAL_PARAMS)
