@@ -141,7 +141,7 @@
     }
 
     args.forEach(function (arg) {
-      path = replaceArg(path, arg)
+      if (arg) path = replaceArg(path, arg)
     })
 
     var matches = path.match(OPTIONAL_PARAMS)
@@ -492,6 +492,7 @@
    * @param  {object} options Object containing a `path` and dynamic path `definition`.
    *                          Can optionnaly take `object: true` to convert the result to an object, defaults to `false`.
    * @return {mixed}          Array of parameter values extracted from the path or key/value pair object.
+   *                          Return `null` if the `path` does not match the `definition`.
    */
   function parse (options) {
     if ( options === void 0 ) options = {};
