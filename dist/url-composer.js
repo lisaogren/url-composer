@@ -137,12 +137,16 @@
 
     if (!isArray(args)) {
       var paramNames = path.match(NAMED_PARAMS)
-      args = paramNames.map(function (name) { return args[name.substr(1)]; })
+      if (paramNames) {
+        args = paramNames.map(function (name) { return args[name.substr(1)]; })
+      }
     }
 
-    args.forEach(function (arg) {
-      if (arg) path = replaceArg(path, arg)
-    })
+    if (isArray(args)) {
+      args.forEach(function (arg) {
+        if (arg) path = replaceArg(path, arg)
+      })
+    }
 
     var matches = path.match(OPTIONAL_PARAMS)
 

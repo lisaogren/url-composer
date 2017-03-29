@@ -131,12 +131,16 @@ function replaceArgs (path, args) {
 
   if (!isArray(args)) {
     const paramNames = path.match(NAMED_PARAMS)
-    args = paramNames.map(name => args[name.substr(1)])
+    if (paramNames) {
+      args = paramNames.map(name => args[name.substr(1)])
+    }
   }
 
-  args.forEach(arg => {
-    if (arg) path = replaceArg(path, arg)
-  })
+  if (isArray(args)) {
+    args.forEach(arg => {
+      if (arg) path = replaceArg(path, arg)
+    })
+  }
 
   const matches = path.match(OPTIONAL_PARAMS)
 

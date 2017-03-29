@@ -46,4 +46,9 @@ test('Should build a complete URL according to passed options', t => {
     url.build({ path: '/users/:id(/edit/:section)', params: { id: 42, section: 'profile' } }),
     '/users/42/edit/profile'
   )
+
+  t.is(
+    url.build({ path: '/path/without/params', params: { some: 'params' } }),
+    '/path/without/params'
+  )
 })
