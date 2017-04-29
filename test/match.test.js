@@ -1,10 +1,20 @@
 import test from 'ava'
 import url from '../dist/url-composer'
 
+const emptyResult = {
+  named: [],
+  splat: []
+}
+
 test('Should generate stats about a path', t => {
   t.deepEqual(
+    url.match(null),
+    emptyResult
+  )
+
+  t.deepEqual(
     url.match('/path/with/no/params'),
-    { named: [], splat: [] }
+    emptyResult
   )
 
   t.deepEqual(
