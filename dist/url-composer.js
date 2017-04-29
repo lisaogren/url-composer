@@ -27,7 +27,7 @@
    * Parentheses global regular expression
    * @private
    */
-  var PARENTHESES = /[\(\)]/g
+  var PARENTHESES = /[(\)]/g
   /**
    * Optional parameters global regular expression
    * @private
@@ -305,8 +305,8 @@
    */
   function getParamsMatch (path) {
     return {
-      named: path.match(NAMED_PARAMS) || [],
-      splat: path.match(SPLAT_PARAMS) || []
+      named: (path && path.match(NAMED_PARAMS)) || [],
+      splat: (path && path.match(SPLAT_PARAMS)) || []
     }
   }
 
