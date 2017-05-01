@@ -1,5 +1,10 @@
 # url-composer
 
+[![JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+[![Build Status](https://travis-ci.org/RasCarlito/url-composer.svg?branch=master)](https://travis-ci.org/RasCarlito/url-composer)
+[![bitHound Overall Score](https://www.bithound.io/github/RasCarlito/url-composer/badges/score.svg)](https://www.bithound.io/github/RasCarlito/url-composer)
+[![npm](https://img.shields.io/npm/dm/url-composer.svg)](https://www.npmjs.com/package/url-composer)
+
 Small lib for parsing and building dynamic URLs
 
 # Install
