@@ -4,11 +4,6 @@
 	(global.urlComposer = factory());
 }(this, (function () { 'use strict';
 
-/**
- * @module url-composer
- * @description Module to build dynamic URLs without a fuss
- */
-
 //
 // Path analysis regular expressions
 //
@@ -54,6 +49,17 @@ var NAMED_PARAMS = /(\(\?)?:\w+/g;
  */
 var ESCAPE = /[-{}[\]+?.,\\^$|#\s]/g;
 
+var regex = {
+  TRAILING_SLASH: TRAILING_SLASH,
+  LEADING_SLASH: LEADING_SLASH,
+  PARENTHESES: PARENTHESES,
+  OPTIONAL_PARAMS: OPTIONAL_PARAMS,
+  SPLAT_PARAMS: SPLAT_PARAMS,
+  NAMED_PARAM: NAMED_PARAM,
+  NAMED_PARAMS: NAMED_PARAMS,
+  ESCAPE: ESCAPE
+};
+
 //
 // Helper functions
 //
@@ -91,6 +97,11 @@ function isEmpty (obj) {
   return true
 }
 
+var helpers = {
+  isArray: isArray,
+  isEmpty: isEmpty
+};
+
 //
 // ## Path parsing functions
 //
@@ -106,11 +117,11 @@ function isEmpty (obj) {
  *                       For an object, the object keys will be used to map values to the dynamic parts of the path.
  * @return {string}      The parsed path with injected arguments
  */
-function composePath (path, args) {
+function compose (path, args) {
   path = path || '';
   args = args || [];
 
-  if (isEmpty(args)) {
+  if (helpers.isEmpty(args)) {
     return removeOptionalParams(path)
   }
 
@@ -135,20 +146,20 @@ function composePath (path, args) {
 function replaceArgs (path, args) {
   args = args || [];
 
-  if (!isArray(args)) {
-    var paramNames = path.match(NAMED_PARAMS);
+  if (!helpers.isArray(args)) {
+    var paramNames = path.match(regex.NAMED_PARAMS);
     if (paramNames) {
       args = paramNames.map(function (name) { return args[name.substr(1)]; });
     }
   }
 
-  if (isArray(args)) {
+  if (helpers.isArray(args)) {
     args.forEach(function (arg) {
       if (arg) { path = replaceArg(path, arg); }
     });
   }
 
-  var matches = path.match(OPTIONAL_PARAMS);
+  var matches = path.match(regex.OPTIONAL_PARAMS);
 
   if (matches) {
     matches.forEach(function (part) {
@@ -175,10 +186,10 @@ function replaceArg (path, arg) {
   arg = encodeURIComponent(arg);
 
   if (hasNamedParam) {
-    return path.replace(NAMED_PARAM, arg)
+    return path.replace(regex.NAMED_PARAM, arg)
   }
 
-  return path.replace(SPLAT_PARAMS, arg)
+  return path.replace(regex.SPLAT_PARAMS, arg)
 }
 
 /**
@@ -190,7 +201,7 @@ function replaceArg (path, arg) {
  * @return {boolean}      `true` if `param` is a named or splat parameter else `false`
  */
 function isNamedOrSplatParam (param) {
-  return NAMED_PARAM.test(param) || SPLAT_PARAMS.test(param)
+  return regex.NAMED_PARAM.test(param) || regex.SPLAT_PARAMS.test(param)
 }
 
 /**
@@ -202,7 +213,7 @@ function isNamedOrSplatParam (param) {
  * @return {string}      The modified path
  */
 function removeOptionalParams (path) {
-  return path.replace(OPTIONAL_PARAMS, '')
+  return path.replace(regex.OPTIONAL_PARAMS, '')
 }
 
 /**
@@ -214,7 +225,7 @@ function removeOptionalParams (path) {
  * @return {string}      The modified path
  */
 function removeTrailingSlash (path) {
-  return path.replace(TRAILING_SLASH, '')
+  return path.replace(regex.TRAILING_SLASH, '')
 }
 
 /**
@@ -226,7 +237,7 @@ function removeTrailingSlash (path) {
  * @return {string}      The modified path
  */
 function removeLeadingSlash (path) {
-  return path.replace(LEADING_SLASH, '')
+  return path.replace(regex.LEADING_SLASH, '')
 }
 
 /**
@@ -238,7 +249,7 @@ function removeLeadingSlash (path) {
  * @return {string}      The modified path
  */
 function removeParentheses (path) {
-  return path.replace(PARENTHESES, '')
+  return path.replace(regex.PARENTHESES, '')
 }
 
 /**
@@ -249,7 +260,7 @@ function removeParentheses (path) {
  * @param  {object} options Object describing the url
  * @return {string}         Concatenation of host, path, query and hash
  */
-function smartConcat (options) {
+function concat (options) {
   var host = options.host;
   var path = options.path;
   var query = options.query;
@@ -276,7 +287,7 @@ function smartConcat (options) {
  * @param  {string} field  Name of the field to analyze
  * @return {array}         Filtered array
  */
-function testParameter (params, field) {
+function test$1 (params, field) {
   var result = [];
 
   for (var i = 0; i < params.length; i++) {
@@ -288,6 +299,17 @@ function testParameter (params, field) {
 
   return result
 }
+
+var pathHelper = {
+  compose: compose,
+  concat: concat,
+  test: test$1
+};
+
+/**
+ * @module url-composer
+ * @description Module to build dynamic URLs without a fuss
+ */
 
 //
 // ## Public API functions
@@ -305,8 +327,8 @@ function testParameter (params, field) {
  */
 function getParamsMatch (path) {
   return {
-    named: (path && path.match(NAMED_PARAMS)) || [],
-    splat: (path && path.match(SPLAT_PARAMS)) || []
+    named: (path && path.match(regex.NAMED_PARAMS)) || [],
+    splat: (path && path.match(regex.SPLAT_PARAMS)) || []
   }
 }
 
@@ -321,10 +343,10 @@ function getParamsMatch (path) {
  * @return {RegExp}       The resulting regular expression instance
  */
 function routeToRegex (route) {
-  route = route.replace(ESCAPE, '\\$&')
-    .replace(OPTIONAL_PARAMS, '(?:$1)?')
-    .replace(NAMED_PARAMS, function (match, optional) { return optional ? match : '([^/?]+)'; })
-    .replace(SPLAT_PARAMS, '([^?]*?)');
+  route = route.replace(regex.ESCAPE, '\\$&')
+    .replace(regex.OPTIONAL_PARAMS, '(?:$1)?')
+    .replace(regex.NAMED_PARAMS, function (match, optional) { return optional ? match : '([^/?]+)'; })
+    .replace(regex.SPLAT_PARAMS, '([^?]*?)');
 
   return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
 }
@@ -342,7 +364,7 @@ function routeToRegex (route) {
 function buildPath (options) {
   options = options || {};
 
-  return composePath(options.path, options.params)
+  return pathHelper.compose(options.path, options.params)
 }
 
 /**
@@ -401,7 +423,7 @@ function build (options) {
   var path = buildPath(options);
   var query = buildQuery(options);
 
-  return smartConcat({ host: options.host, path: path, query: query, hash: options.hash })
+  return pathHelper.concat({ host: options.host, path: path, query: query, hash: options.hash })
 }
 
 /**
@@ -443,7 +465,7 @@ function paramsArray2Object (path, args) {
  * @return {object}      Object containing different stats about the path
  */
 function stats (path, args) {
-  var optional = path.match(OPTIONAL_PARAMS) || [];
+  var optional = path.match(regex.OPTIONAL_PARAMS) || [];
   var ref = getParamsMatch(path);
   var named = ref.named;
   var splat = ref.splat;
@@ -452,7 +474,7 @@ function stats (path, args) {
 
   args = args || {};
 
-  if (isArray(args)) {
+  if (helpers.isArray(args)) {
     args = paramsArray2Object(path, args);
   }
 
@@ -477,10 +499,10 @@ function stats (path, args) {
 
   return {
     params: params,
-    hasOptionalParams: OPTIONAL_PARAMS.test(path),
-    missingOptionalParams: testParameter(params, 'optional'),
-    missingRequiredParams: testParameter(params, 'required'),
-    missingParams: testParameter(params, 'name')
+    hasOptionalParams: regex.OPTIONAL_PARAMS.test(path),
+    missingOptionalParams: pathHelper.test(params, 'optional'),
+    missingRequiredParams: pathHelper.test(params, 'required'),
+    missingParams: pathHelper.test(params, 'name')
   }
 }
 
