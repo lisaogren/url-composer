@@ -21,7 +21,7 @@ const LEADING_SLASH = /^\//
  * Parentheses global regular expression
  * @private
  */
-const PARENTHESES = /[(\)]/g
+const PARENTHESES = /[()]/g
 /**
  * Optional parameters global regular expression
  * @private
@@ -46,7 +46,7 @@ const NAMED_PARAMS = /(\(\?)?:\w+/g
  * Some wierd escape regular expression
  * @private
  */
-const ESCAPE = /[\-{}\[\]+?.,\\\^$|#\s]/g
+const ESCAPE = /[-{}[\]+?.,\\^$|#\s]/g
 
 //
 // Helper functions
@@ -384,8 +384,6 @@ function test (options) {
  * @param  {object} options An object containing `host`, `path`, `params`, `query` and `hash`.
  *                          Everything is optional, calling `build` without any parameters will just return an empty string.
  * @return {string}         The built URL
- *
- * @TODO Split host and protocol
  */
 function build (options) {
   options = options || {}
