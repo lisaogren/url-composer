@@ -3,282 +3,9 @@
  * @description Module to build dynamic URLs without a fuss
  */
 
-//
-// Path analysis regular expressions
-//
-
-/**
- * Trailing slash regular expression
- * @private
- */
-const TRAILING_SLASH = /\/$/
-/**
- * Leading slash regular expression
- * @private
- */
-const LEADING_SLASH = /^\//
-/**
- * Parentheses global regular expression
- * @private
- */
-const PARENTHESES = /[()]/g
-/**
- * Optional parameters global regular expression
- * @private
- */
-const OPTIONAL_PARAMS = /\((.*?)\)/g
-/**
- * Splat parameters global regular expression
- * @private
- */
-const SPLAT_PARAMS = /\*\w+/g
-/**
- * Named parameter regular expression
- * @private
- */
-const NAMED_PARAM = /(\(\?)?:\w+/
-/**
- * Named parameters global regular expression
- * @private
- */
-const NAMED_PARAMS = /(\(\?)?:\w+/g
-/**
- * Some wierd escape regular expression
- * @private
- */
-const ESCAPE = /[-{}[\]+?.,\\^$|#\s]/g
-
-//
-// Helper functions
-//
-
-/**
- * Checks if a given object is an array
- *
- * @private
- *
- * @param  {mixed} obj The object to check
- * @return {boolean}   `true` if `obj` is an array else `false`
- */
-function isArray (obj) {
-  return Object.prototype.toString.call(obj) === '[object Array]'
-}
-
-/**
- * Check if a given object is empty
- *
- * @private
- *
- * @param  {object} obj The object to check
- * @return {boolean}    `true` if `obj` is empty else `false`
- */
-function isEmpty (obj) {
-  if (obj == null) return true
-  if (obj.length > 0) return false
-  if (obj.length === 0) return true
-  if (typeof obj !== 'object') return true
-
-  for (let key in obj) {
-    if (hasOwnProperty.call(obj, key)) return false
-  }
-
-  return true
-}
-
-//
-// ## Path parsing functions
-//
-
-/**
- * Inject arguments into a dynamic path definition and clean unused optional parts
- *
- * @private
- *
- * @param  {string} path The dynamic path definition
- * @param  {mixed}  args Object or array of arguments to inject.
- *                       If it is an array, arguments will be injected in sequential order.
- *                       For an object, the object keys will be used to map values to the dynamic parts of the path.
- * @return {string}      The parsed path with injected arguments
- */
-function composePath (path, args) {
-  path = path || ''
-  args = args || []
-
-  if (isEmpty(args)) {
-    return removeOptionalParams(path)
-  }
-
-  path = replaceArgs(path, args)
-
-  return removeTrailingSlash(
-    removeParentheses(path)
-  )
-}
-
-/**
- * Replace dynamic parts of a path by given values
- *
- * @private
- *
- * @param  {string} path The dynamic path definition
- * @param  {mixed}  args Object or array of arguments to inject.
- *                       If it is an array, arguments will be injected in sequential order.
- *                       For an object, the object keys will be used to map values to the dynamic parts of the path.
- * @return {string}      Path with injected arguments
- */
-function replaceArgs (path, args) {
-  args = args || []
-
-  if (!isArray(args)) {
-    const paramNames = path.match(NAMED_PARAMS)
-    if (paramNames) {
-      args = paramNames.map(name => args[name.substr(1)])
-    }
-  }
-
-  if (isArray(args)) {
-    args.forEach(arg => {
-      if (arg) path = replaceArg(path, arg)
-    })
-  }
-
-  const matches = path.match(OPTIONAL_PARAMS)
-
-  if (matches) {
-    matches.forEach(part => {
-      if (isNamedOrSplatParam(part)) {
-        path = path.replace(part, '')
-      }
-    })
-  }
-
-  return path
-}
-
-/**
- * Replace the first matching dynamic part of a path by the given argument
- *
- * @private
- *
- * @param  {string} path The dynamic path definition
- * @param  {mixed}  arg  The value to inject
- * @return {string}      The modified path
- */
-function replaceArg (path, arg) {
-  const hasNamedParam = path.indexOf(':') !== -1
-  arg = encodeURIComponent(arg)
-
-  if (hasNamedParam) {
-    return path.replace(NAMED_PARAM, arg)
-  }
-
-  return path.replace(SPLAT_PARAMS, arg)
-}
-
-/**
- * Check if the next dynamic part in a path is a named or splat parameter definition
- *
- * @private
- *
- * @param  {string} param Dynamic part of a dynamic path definition
- * @return {boolean}      `true` if `param` is a named or splat parameter else `false`
- */
-function isNamedOrSplatParam (param) {
-  return NAMED_PARAM.test(param) || SPLAT_PARAMS.test(param)
-}
-
-/**
- * Strip the unfilled optional parameters from a dynamic path definition
- *
- * @private
- *
- * @param  {string} path The dynamic path to modify
- * @return {string}      The modified path
- */
-function removeOptionalParams (path) {
-  return path.replace(OPTIONAL_PARAMS, '')
-}
-
-/**
- * Remove the last character from a path if it is a slash
- *
- * @private
- *
- * @param  {string} path The path to modify
- * @return {string}      The modified path
- */
-function removeTrailingSlash (path) {
-  return path.replace(TRAILING_SLASH, '')
-}
-
-/**
- * Remove the first character from a path if it is a slash
- *
- * @private
- *
- * @param  {string} path The path to modify
- * @return {string}      The modified path
- */
-function removeLeadingSlash (path) {
-  return path.replace(LEADING_SLASH, '')
-}
-
-/**
- * Remove/clean remaining parentheses from a path after it has been parsed
- *
- * @private
- *
- * @param  {string} path The path to modify/clean
- * @return {string}      The modified path
- */
-function removeParentheses (path) {
-  return path.replace(PARENTHESES, '')
-}
-
-/**
- * Smart concatenation of host, path, query and hash. Will add the correct glue character when needed
- *
- * @private
- *
- * @param  {object} options Object describing the url
- * @return {string}         Concatenation of host, path, query and hash
- */
-function smartConcat (options) {
-  let { host, path, query, hash } = options
-
-  // Normalize parts
-  host = removeTrailingSlash(host)
-  path = removeTrailingSlash(removeLeadingSlash(path))
-
-  // Add specific glue characters
-  path = path ? `/${path}` : ''
-  query = query ? `?${query}` : ''
-  hash = hash ? `#${hash}` : ''
-
-  return `${host}${path}${query}${hash}`
-}
-
-/**
- * Test the existence of certain fields in the stats
- *
- * @private
- *
- * @param  {array}  params List of analyzed parameters
- * @param  {string} field  Name of the field to analyze
- * @return {array}         Filtered array
- */
-function testParameter (params, field) {
-  const result = []
-
-  for (let i = 0; i < params.length; i++) {
-    let p = params[i]
-    if (p[field] && p.value === '') {
-      result.push(p)
-    }
-  }
-
-  return result
-}
+import regex from './regex'
+import helpers from './helpers'
+import pathHelper from './path'
 
 //
 // ## Public API functions
@@ -296,8 +23,8 @@ function testParameter (params, field) {
  */
 function getParamsMatch (path) {
   return {
-    named: (path && path.match(NAMED_PARAMS)) || [],
-    splat: (path && path.match(SPLAT_PARAMS)) || []
+    named: (path && path.match(regex.NAMED_PARAMS)) || [],
+    splat: (path && path.match(regex.SPLAT_PARAMS)) || []
   }
 }
 
@@ -312,10 +39,10 @@ function getParamsMatch (path) {
  * @return {RegExp}       The resulting regular expression instance
  */
 function routeToRegex (route) {
-  route = route.replace(ESCAPE, '\\$&')
-    .replace(OPTIONAL_PARAMS, '(?:$1)?')
-    .replace(NAMED_PARAMS, (match, optional) => optional ? match : '([^/?]+)')
-    .replace(SPLAT_PARAMS, '([^?]*?)')
+  route = route.replace(regex.ESCAPE, '\\$&')
+    .replace(regex.OPTIONAL_PARAMS, '(?:$1)?')
+    .replace(regex.NAMED_PARAMS, (match, optional) => optional ? match : '([^/?]+)')
+    .replace(regex.SPLAT_PARAMS, '([^?]*?)')
 
   return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$')
 }
@@ -333,7 +60,7 @@ function routeToRegex (route) {
 function buildPath (options) {
   options = options || {}
 
-  return composePath(options.path, options.params)
+  return pathHelper.compose(options.path, options.params)
 }
 
 /**
@@ -392,7 +119,7 @@ function build (options) {
   const path = buildPath(options)
   const query = buildQuery(options)
 
-  return smartConcat({ host: options.host, path, query, hash: options.hash })
+  return pathHelper.concat({ host: options.host, path, query, hash: options.hash })
 }
 
 /**
@@ -434,14 +161,14 @@ function paramsArray2Object (path, args) {
  * @return {object}      Object containing different stats about the path
  */
 function stats (path, args) {
-  const optional = path.match(OPTIONAL_PARAMS) || []
+  const optional = path.match(regex.OPTIONAL_PARAMS) || []
   const { named, splat } = getParamsMatch(path)
 
   let params = named.concat(splat)
 
   args = args || {}
 
-  if (isArray(args)) {
+  if (helpers.isArray(args)) {
     args = paramsArray2Object(path, args)
   }
 
@@ -466,10 +193,10 @@ function stats (path, args) {
 
   return {
     params,
-    hasOptionalParams: OPTIONAL_PARAMS.test(path),
-    missingOptionalParams: testParameter(params, 'optional'),
-    missingRequiredParams: testParameter(params, 'required'),
-    missingParams: testParameter(params, 'name')
+    hasOptionalParams: regex.OPTIONAL_PARAMS.test(path),
+    missingOptionalParams: pathHelper.test(params, 'optional'),
+    missingRequiredParams: pathHelper.test(params, 'required'),
+    missingParams: pathHelper.test(params, 'name')
   }
 }
 
