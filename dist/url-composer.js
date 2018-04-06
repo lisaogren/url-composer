@@ -249,19 +249,29 @@ function removeParentheses (path) {
  * @param  {object} options Object describing the url
  * @return {string}         Concatenation of host, path, query and hash
  */
-function smartConcat (options) {
-  var host = options.host;
-  var path = options.path;
-  var query = options.query;
-  var hash = options.hash;
+function smartConcat (ref) {
+  var host = ref.host;
+  var path = ref.path;
+  var query = ref.query;
+  var hash = ref.hash;
 
-  // Normalize parts
+  // Normalize host
   host = removeTrailingSlash(host);
-  path = removeTrailingSlash(removeLeadingSlash(path));
+
+  // Split path in case path contains an existing query
+  var ref$1 = path.split('?');
+  var pathPart = ref$1[0];
+  var queryPart = ref$1[1];
+
+  // Normalize path
+  path = removeTrailingSlash(
+    removeLeadingSlash(pathPart)
+  );
 
   // Add specific glue characters
   path = path ? ("/" + path) : '';
-  query = query ? ("?" + query) : '';
+  queryPart = queryPart ? (queryPart + "&") : '';
+  query = query ? ("?" + queryPart + query) : '';
   hash = hash ? ("#" + hash) : '';
 
   return ("" + host + path + query + hash)
