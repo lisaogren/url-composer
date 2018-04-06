@@ -51,4 +51,38 @@ test('Should build a complete URL according to passed options', t => {
     url.build({ path: '/path/without/params', params: { some: 'params' } }),
     '/path/without/params'
   )
+
+  t.is(
+    url.build({
+      path: '/path/with?existing=query',
+      query: { adding: 'extra' }
+    }),
+    '/path/with?existing=query&adding=extra'
+  )
+
+  t.is(
+    url.build({
+      path: '/path/:control/param?existing=query',
+      params: { control: 'with' },
+      query: { adding: 'extra' }
+    }),
+    '/path/with/param?existing=query&adding=extra'
+  )
+
+  const trailingOptionalParamWithQuery = {
+    path: '/path/with(/:control)?existing=query',
+    query: { adding: 'extra' }
+  }
+
+  t.is(
+    url.build(trailingOptionalParamWithQuery),
+    '/path/with?existing=query&adding=extra'
+  )
+
+  trailingOptionalParamWithQuery.params = { control: 'param' }
+
+  t.is(
+    url.build(trailingOptionalParamWithQuery),
+    '/path/with/param?existing=query&adding=extra'
+  )
 })
