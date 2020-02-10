@@ -7,6 +7,12 @@ test('Should build a query string from given parameters', t => {
   })
   t.is(query, 'a=1&b=2&c=3')
 
+  const undefinedParamsQuery = url.query({
+    query: { a: undefined, b: 3, c: "hello"}
+  });
+
+  t.is(undefinedParamsQuery, 'b=3&c=hello')
+
   t.is(url.query({ query: {} }), '')
 
   t.is(url.query(), '')

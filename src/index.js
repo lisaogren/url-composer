@@ -359,7 +359,9 @@ function buildQuery (options) {
 
   for (let key in options.query) {
     const param = options.query[key]
-    query.push(`${key}=${encodeURIComponent(param)}`)
+    if (param !== undefined) {
+      query.push(`${key}=${encodeURIComponent(param)}`)
+    }
   }
 
   return query.length ? query.join('&') : ''

@@ -372,7 +372,9 @@ function buildQuery (options) {
 
   for (var key in options.query) {
     var param = options.query[key];
-    query.push((key + "=" + (encodeURIComponent(param))));
+    if (param !== undefined) {
+      query.push((key + "=" + (encodeURIComponent(param))));
+    }
   }
 
   return query.length ? query.join('&') : ''
