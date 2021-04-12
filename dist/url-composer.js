@@ -172,13 +172,20 @@ function replaceArgs (path, args) {
  */
 function replaceArg (path, arg) {
   var hasNamedParam = path.indexOf(':') !== -1;
-  arg = encodeURIComponent(arg);
+  let encodedarg = encodeURIComponent(arg);
 
   if (hasNamedParam) {
-    return path.replace(NAMED_PARAM, arg)
+    if(arg)//if arg is defined
+    {
+       return path.replace(NAMED_PARAM, encodedarg)
+    }
+    else//if not defined
+    {
+      return path.replace(NAMED_PARAM,'').replace(/(\/)/gi,'')
+    }  
   }
 
-  return path.replace(SPLAT_PARAMS, arg)
+  return path.replace(SPLAT_PARAMS, encodedarg)
 }
 
 /**
