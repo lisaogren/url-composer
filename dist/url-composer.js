@@ -144,7 +144,9 @@ function replaceArgs (path, args) {
 
   if (isArray(args)) {
     args.forEach(function (arg) {
-      if (arg) { path = replaceArg(path, arg); }
+      //if (arg) { 
+        path = replaceArg(path, arg); 
+      //}
     });
   }
 
